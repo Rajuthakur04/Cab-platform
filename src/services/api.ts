@@ -1,7 +1,7 @@
 // MERN Stack Service Layer for Bihar Cabs
 // Seamlessly connects with Express/MongoDB when running, or local storage persistence fallback
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE || 'http://localhost:5000/api';
+const API_BASE = (import.meta as any).env?.VITE_API_BASE || 'https://bihar-cabs-api.onrender.com/api';
 
 export const apiService = {
   // Check if MERN backend server is running
