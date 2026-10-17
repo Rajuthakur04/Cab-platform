@@ -11,6 +11,7 @@ import { AuthModal } from './components/AuthModal';
 import { InvoiceModal } from './components/InvoiceModal';
 import { Footer } from './components/Footer';
 import { FloatingContactWidget } from './components/FloatingContactWidget';
+import { apiService } from './services/api';
 import { Shield, ArrowRight, Bell, X } from 'lucide-react';
 
 export default function App() {
@@ -174,7 +175,19 @@ export default function App() {
     }
   };
 
+  // Check backend health and sync remote bookings on mount
+  useEffect(() => {
+    apiService.getBookings().then((remoteBookings) => {
+      if (remoteBookings && Array.isArray(remoteBookings) && remoteBookings.length > 0) {
+        setBookings(remoteBookings);
+      }
+    });
+  }, []);
+
   const handleBookingCreated = (newBooking: Booking) => {
+    // Send to live MongoDB Atlas via Render API
+    apiService.createBooking(newBooking).catch(console.error);
+
     const pickupName = DISTRICTS.find((d) => d.id === newBooking.pickupDistrictId)?.name || newBooking.pickupDistrictId;
     const dropoffName =
       newBooking.bookingType === 'local'
