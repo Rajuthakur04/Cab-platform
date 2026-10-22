@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, User, Phone, LogIn, UserCheck } from 'lucide-react';
 import { User as UserType } from '../types';
+import { apiService } from '../services/api';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -16,7 +17,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess })
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -27,6 +28,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess })
       }
 
       const cleanEmail = email.trim().toLowerCase();
+
+      // Check MERN Backend API first
+      try {
+        const remoteUser = await apiService.login({ email: cleanEmail, password });
+        if (remoteUser) {
+          onLoginSuccess(remoteUser);
+          onClose();
+          return;
+        }
+      } catch {
+        // Fallback to local authentication
+      }
 
       // 1. Built-in Admin Account
       if (cleanEmail === 'admin@biharcabs.in' && password === 'admin') {

@@ -11,6 +11,7 @@ import { AuthModal } from './components/AuthModal';
 import { InvoiceModal } from './components/InvoiceModal';
 import { Footer } from './components/Footer';
 import { FloatingContactWidget } from './components/FloatingContactWidget';
+import { AdminLoginGate } from './components/AdminLoginGate';
 import { apiService } from './services/api';
 import { Shield, ArrowRight, Bell, X } from 'lucide-react';
 
@@ -30,16 +31,12 @@ export default function App() {
   // Authenticated state
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const savedUser = localStorage.getItem('bihar_cabs_current_user');
-    if (savedUser) return JSON.parse(savedUser);
-    // If URL is /admin, default to Admin user
-    if (window.location.pathname.toLowerCase().includes('admin')) {
-      return {
-        id: 'admin1',
-        name: 'Admin Bihar Cabs',
-        email: 'admin@biharcabs.in',
-        phone: '9876543210',
-        role: 'admin',
-      };
+    if (savedUser) {
+      try {
+        return JSON.parse(savedUser);
+      } catch {
+        return null;
+      }
     }
     return null;
   });
@@ -105,19 +102,6 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // When visiting /admin, ensure user is set as admin
-  useEffect(() => {
-    if (currentTab === 'admin' && currentUser?.role !== 'admin') {
-      setCurrentUser({
-        id: 'admin1',
-        name: 'Admin Bihar Cabs',
-        email: 'admin@biharcabs.in',
-        phone: '9876543210',
-        role: 'admin',
-      });
-    }
-  }, [currentTab, currentUser]);
-
   // Keep localStorage synced
   useEffect(() => {
     if (currentUser) {
@@ -141,17 +125,12 @@ export default function App() {
 
   const handleLogout = () => {
     setCurrentUser(null);
+    localStorage.removeItem('bihar_cabs_current_user');
     setCurrentTab('home');
   };
 
   const handleAdminLoginClick = () => {
-    setCurrentUser({
-      id: 'admin1',
-      name: 'Admin Bihar Cabs',
-      email: 'admin@biharcabs.in',
-      phone: '9876543210',
-      role: 'admin',
-    });
+    // Navigate to admin tab (will show AdminLoginGate if not authenticated)
     setCurrentTab('admin');
   };
 
@@ -339,18 +318,27 @@ export default function App() {
           />
         )}
 
-        {currentTab === 'admin' && (
-          <AdminDashboard
-            bookings={bookings}
-            setBookings={setBookings}
-            vehicles={vehicles}
-            setVehicles={setVehicles}
-            notifications={notifications}
-            setNotifications={setNotifications}
-            onViewInvoice={(booking) => setInvoiceBooking(booking)}
-            onSwitchToUserView={() => setCurrentTab('book')}
-          />
-        )}
+        {currentTab === 'admin' &&
+          (currentUser?.role === 'admin' ? (
+            <AdminDashboard
+              bookings={bookings}
+              setBookings={setBookings}
+              vehicles={vehicles}
+              setVehicles={setVehicles}
+              notifications={notifications}
+              setNotifications={setNotifications}
+              onViewInvoice={(booking) => setInvoiceBooking(booking)}
+              onSwitchToUserView={() => setCurrentTab('book')}
+            />
+          ) : (
+            <AdminLoginGate
+              onLoginSuccess={(user) => {
+                setCurrentUser(user);
+                setCurrentTab('admin');
+              }}
+              onCancel={() => setCurrentTab('home')}
+            />
+          ))}
       </main>
 
       <Footer setCurrentTab={setCurrentTab} onAdminLoginClick={handleAdminLoginClick} />

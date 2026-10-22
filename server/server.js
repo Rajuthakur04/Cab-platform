@@ -169,6 +169,19 @@ app.put('/api/bookings/:id', async (req, res) => {
   }
 });
 
+app.patch('/api/bookings/:id/status', async (req, res) => {
+  try {
+    const { status, driver } = req.body;
+    const updateData = {};
+    if (status) updateData.status = status;
+    if (driver) updateData.driver = driver;
+    const updated = await Booking.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.delete('/api/bookings/:id', async (req, res) => {
   try {
     await Booking.findByIdAndDelete(req.params.id);

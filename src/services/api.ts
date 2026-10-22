@@ -41,6 +41,16 @@ export const apiService = {
   },
 
   // Bookings
+  getBookings: async () => {
+    try {
+      const res = await fetch(`${API_BASE}/bookings`);
+      if (!res.ok) throw new Error('Fetch failed');
+      return await res.json();
+    } catch {
+      return null;
+    }
+  },
+
   createBooking: async (bookingData: unknown) => {
     try {
       const res = await fetch(`${API_BASE}/bookings`, {
@@ -52,6 +62,30 @@ export const apiService = {
       return await res.json();
     } catch {
       return null;
+    }
+  },
+
+  updateBookingStatus: async (id: string, status: string, driver?: unknown) => {
+    try {
+      const res = await fetch(`${API_BASE}/bookings/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, driver }),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  },
+
+  deleteBooking: async (id: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/bookings/${id}`, {
+        method: 'DELETE',
+      });
+      return res.ok;
+    } catch {
+      return false;
     }
   },
 

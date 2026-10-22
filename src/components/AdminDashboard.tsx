@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Booking, BookingStatus, Vehicle, VehicleTier, AppNotification } from '../types';
 import { DISTRICTS } from '../data/mockData';
 import { DriverAssignmentModal } from './DriverAssignmentModal';
+import { apiService } from '../services/api';
 import {
   Trash2,
   Plus,
@@ -24,7 +25,9 @@ import {
   ArrowRight,
   TrendingUp,
   Calendar,
-  X
+  X,
+  Phone,
+  MapPin
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -103,6 +106,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       prev.map((b) => (b.id === id ? { ...b, status: newStatus } : b))
     );
 
+    // Sync to MERN backend API
+    apiService.updateBookingStatus(id, newStatus).catch(console.error);
+
     // Notify customer about status change
     const targetBooking = bookings.find((b) => b.id === id);
     if (targetBooking) {
@@ -124,6 +130,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleDeleteBooking = (id: string) => {
     if (window.confirm('Are you sure you want to delete this booking permanently?')) {
       setBookings((prev) => prev.filter((b) => b.id !== id));
+      // Sync delete to backend
+      apiService.deleteBooking(id).catch(console.error);
     }
   };
 
@@ -145,6 +153,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           : b
       )
     );
+
+    // Sync assignment & Confirmed status to backend API
+    apiService.updateBookingStatus(bookingId, 'Confirmed', driverInfo).catch(console.error);
 
     // Create Notification
     const newNotif: AppNotification = {
